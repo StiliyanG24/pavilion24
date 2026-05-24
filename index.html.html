@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#1a3a1a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Павилион 24">
+<title>Павилион 24</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&family=Nunito+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root {
+  --green-dark: #1a3a1a;
+  --green-mid: #2d5a2d;
+  --green-main: #3d7a3d;
+  --green-light: #5a9e5a;
+  --green-pale: #e8f5e8;
+  --green-ultra: #f4faf4;
+  --amber: #e07b39;
+  --amber-pale: #fef3eb;
+  --red: #d94f4f;
+  --red-pale: #fdeaea;
+  --blue: #3a7bd5;
+  --blue-pale: #eaf0fb;
+  --text-primary: #1a1a1a;
+  --text-secondary: #555;
+  --text-muted: #999;
+  --border: #e4e4e0;
+  --bg: #f7f7f5;
+  --white: #ffffff;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.10);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.13);
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-xl: 24px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body { font-family: 'Nunito Sans', sans-serif; background: var(--bg); color: var(--text-primary); min-height: 100vh; max-width: 480px; margin: 0 auto; position: relative; }
+h1,h2,h3,h4 { font-family: 'Nunito', sans-serif; }
+
+/* ---- SCREENS ---- */
+.screen { display: none; min-height: 100vh; flex-direction: column; }
+.screen.active { display: flex; }
+
+/* ---- LOGIN ---- */
+#screen-login {
+  background: linear-gradient(160deg, var(--green-dark) 0%, var(--green-mid) 60%, var(--green-main) 100%);
+  justify-content: center; align-items: center; padding: 40px 28px;
+}
+.login-logo { text-align: center; margin-bottom: 40px; }
+.login-logo-icon { width: 72px; height: 72px; background: rgba(255,255,255,0.15); border-radius: 22px; display: flex; align-items: center; justify-content: center; margin: 0 auto 14px; backdrop-filter: blur(10px); }
+.login-logo-icon i { font-size: 36px; color: #fff; }
+.login-logo h1 { font-size: 28px; color: #fff; font-weight: 800; letter-spacing: -0.5px; }
+.login-logo p { font-size: 13px; color: rgba(255,255,255,0.6); margin-top: 4px; }
+.login-box { background: rgba(255,255,255,0.97); border-radius: var(--radius-xl); padding: 28px 24px; width: 100%; box-shadow: var(--shadow-lg); }
+.login-box h2 { font-size: 18px; font-weight: 700; margin-bottom: 22px; color: var(--text-primary); }
+.form-group { margin-bottom: 16px; }
+.form-label { font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; display: block; text-transform: uppercase; letter-spacing: 0.05em; }
+.form-input { width: 100%; padding: 13px 15px; font-size: 15px; font-family: 'Nunito Sans', sans-serif; border: 1.5px solid var(--border); border-radius: var(--radius-md); background: var(--bg); color: var(--text-primary); outline: none; transition: border-color 0.2s; }
+.form-input:focus { border-color: var(--green-main); background: #fff; }
+.btn-login { width: 100%; padding: 15px; background: var(--green-main); color: #fff; border: none; border-radius: var(--radius-md); font-size: 15px; font-weight: 700; font-family: 'Nunito', sans-serif; cursor: pointer; transition: background 0.2s; margin-top: 6px; }
+.btn-login:hover { background: var(--green-mid); }
+.login-error { background: var(--red-pale); color: var(--red); font-size: 13px; padding: 10px 14px; border-radius: var(--radius-sm); margin-top: 12px; display: none; }
+
+/* ---- TOP BAR ---- */
+.topbar { background: var(--white); border-bottom: 1px solid var(--border); padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow-sm); flex-shrink: 0; }
+.topbar-left { display: flex; align-items: center; gap: 10px; }
+.topbar-logo { font-family: 'Nunito', sans-serif; font-size: 17px; font-weight: 800; color: var(--green-dark); }
+.topbar-sub { font-size: 11px; color: var(--text-muted); }
+.topbar-avatar { width: 34px; height: 34px; border-radius: 50%; background: var(--green-pale); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: var(--green-mid); cursor: pointer; flex-shrink: 0; }
+
+/* ---- BOTTOM NAV ---- */
+.bottom-nav { background: var(--white); border-top: 1px solid var(--border); display: flex; position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; z-index: 100; box-shadow: 0 -2px 12px rgba(0,0,0,0.07); }
+.bn-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px 4px 8px; cursor: pointer; color: var(--text-muted); transition: color 0.15s; position: relative; }
+.bn-item.active { color: var(--green-main); }
+.bn-item i { font-size: 22px; }
+.bn-item span { font-size: 10px; font-weight: 600; margin-top: 3px; font-family: 'Nunito', sans-serif; }
+.bn-badge { position: absolute; top: 7px; right: calc(50% - 18px); background: var(--red); color: #fff; font-size: 10px; font-weight: 700; width: 16px; height: 16px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+
+/* ---- SCROLL CONTENT ---- */
+.scroll-content { flex: 1; overflow-y: auto; padding-bottom: 80px; }
+
+/* ---- PAGES ---- */
+.page { display: none; }
+.page.active { display: block; }
+
+/* ---- HOME ---- */
+.home-hero { background: linear-gradient(135deg, var(--green-dark), var(--green-mid)); padding: 22px 18px 26px; color: #fff; }
+.home-greeting { font-size: 13px; color: rgba(255,255,255,0.65); margin-bottom: 4px; }
+.home-name { font-family: 'Nunito', sans-serif; font-size: 22px; font-weight: 800; }
+.home-obekt { font-size: 12px; color: rgba(255,255,255,0.55); margin-top: 3px; }
+.home-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 18px; }
+.home-stat { background: rgba(255,255,255,0.12); border-radius: var(--radius-md); padding: 12px 14px; backdrop-filter: blur(8px); }
+.hs-label { font-size: 11px; color: rgba(255,255,255,0.6); margin-bottom: 4px; }
+.hs-val { font-family: 'Nunito', sans-serif; font-size: 20px; font-weight: 800; color: #fff; }
+.home-section { padding: 18px 16px 0; }
+.home-section-title { font-size: 13px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 12px; }
+.task-card { background: var(--white); border-radius: var(--radius-lg); padding: 15px 16px; margin-bottom: 10px; box-shadow: var(--shadow-sm); border: 1px solid var(--border); display: flex; align-items: center; gap: 13px; cursor: pointer; transition: box-shadow 0.15s; }
+.task-card:hover { box-shadow: var(--shadow-md); }
+.task-icon { width: 42px; height: 42px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.task-icon i { font-size: 20px; }
+.task-body { flex: 1; }
+.task-title { font-size: 14px; font-weight: 700; color: var(--text-primary); margin-bottom: 3px; }
+.task-meta { font-size: 12px; color: var(--text-muted); }
+.task-badge { flex-shrink: 0; }
+
+/* ---- BADGES ---- */
+.badge { display: inline-flex; align-items: center; font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 100px; font-family: 'Nunito', sans-serif; }
+.badge-green { background: var(--green-pale); color: var(--green-mid); }
+.badge-amber { background: var(--amber-pale); color: var(--amber); }
+.badge-red { background: var(--red-pale); color: var(--red); }
+.badge-blue { background: var(--blue-pale); color: var(--blue); }
+.badge-gray { background: #f0f0ec; color: #777; }
+
+/* ---- TRAINING ---- */
+.training-header { background: var(--green-ultra); border-bottom: 1px solid var(--border); padding: 16px 18px; }
+.training-header h2 { font-size: 18px; font-weight: 800; color: var(--green-dark); }
+.training-header p { font-size: 12px; color: var(--text-muted); margin-top: 3px; }
+.cat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 11px; padding: 16px; }
+.cat-card { background: var(--white); border-radius: var(--radius-lg); padding: 18px 14px; box-shadow: var(--shadow-sm); border: 1px solid var(--border); cursor: pointer; transition: all 0.15s; text-align: center; }
+.cat-card:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
+.cat-card-icon { width: 48px; height: 48px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; }
+.cat-card-icon i { font-size: 24px; }
+.cat-card-name { font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 4px; }
+.cat-card-meta { font-size: 11px; color: var(--text-muted); }
+.cat-progress { height: 3px; background: var(--border); border-radius: 10px; margin-top: 10px; overflow: hidden; }
+.cat-progress-fill { height: 100%; background: var(--green-main); border-radius: 10px; }
+
+/* ---- SUBPAGE ---- */
+.subpage-header { background: var(--white); padding: 14px 18px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 50; }
+.back-btn { width: 34px; height: 34px; border-radius: 50%; background: var(--bg); display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
+.back-btn i { font-size: 18px; color: var(--text-secondary); }
+.subpage-title { font-size: 16px; font-weight: 800; color: var(--text-primary); }
+.material-card { background: var(--white); border-radius: var(--radius-lg); margin: 0 16px 12px; box-shadow: var(--shadow-sm); border: 1px solid var(--border); overflow: hidden; cursor: pointer; }
+.material-thumb { height: 90px; display: flex; align-items: center; justify-content: center; position: relative; }
+.play-overlay { width: 44px; height: 44px; background: rgba(255,255,255,0.92); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-md); }
+.play-overlay i { font-size: 18px; color: var(--green-dark); }
+.material-info { padding: 12px 14px; }
+.material-title { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+.material-meta { font-size: 11px; color: var(--text-muted); display: flex; align-items: center; gap: 8px; }
+
+/* ---- QUIZ ---- */
+.quiz-wrap { padding: 16px; }
+.quiz-progress { display: flex; gap: 4px; margin-bottom: 20px; }
+.qp-dot { flex: 1; height: 4px; background: var(--border); border-radius: 10px; transition: background 0.2s; }
+.qp-dot.done { background: var(--green-main); }
+.qp-dot.current { background: var(--amber); }
+.quiz-card { background: var(--white); border-radius: var(--radius-xl); padding: 22px 20px; box-shadow: var(--shadow-md); border: 1px solid var(--border); }
+.quiz-num { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px; }
+.quiz-question { font-size: 16px; font-weight: 700; line-height: 1.5; color: var(--text-primary); margin-bottom: 20px; }
+.quiz-opt { display: flex; align-items: center; gap: 12px; padding: 13px 15px; border: 1.5px solid var(--border); border-radius: var(--radius-md); margin-bottom: 9px; cursor: pointer; transition: all 0.15s; }
+.quiz-opt:hover { border-color: var(--green-light); background: var(--green-ultra); }
+.quiz-opt.selected { border-color: var(--green-main); background: var(--green-pale); }
+.quiz-opt.correct { border-color: var(--green-main); background: var(--green-pale); }
+.quiz-opt.wrong { border-color: var(--red); background: var(--red-pale); }
+.qo-radio { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--border); flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+.qo-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green-main); display: none; }
+.quiz-opt.selected .qo-radio { border-color: var(--green-main); }
+.quiz-opt.selected .qo-dot { display: block; }
+.qo-text { font-size: 14px; color: var(--text-primary); }
+.quiz-nav { display: flex; align-items: center; justify-content: space-between; margin-top: 20px; }
+.btn-next { padding: 12px 24px; background: var(--green-main); color: #fff; border: none; border-radius: var(--radius-md); font-size: 14px; font-weight: 700; font-family: 'Nunito', sans-serif; cursor: pointer; }
+.btn-next:disabled { background: var(--border); color: var(--text-muted); cursor: default; }
+
+/* ---- RESULT SCREEN ---- */
+.result-box { text-align: center; padding: 40px 24px; }
+.result-circle { width: 110px; height: 110px; border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; flex-direction: column; }
+.result-circle.pass { background: var(--green-pale); border: 3px solid var(--green-main); }
+.result-circle.fail { background: var(--red-pale); border: 3px solid var(--red); }
+.result-pct { font-family: 'Nunito', sans-serif; font-size: 30px; font-weight: 800; }
+.result-circle.pass .result-pct { color: var(--green-mid); }
+.result-circle.fail .result-pct { color: var(--red); }
+.result-title { font-size: 20px; font-weight: 800; margin-bottom: 8px; }
+.result-sub { font-size: 14px; color: var(--text-muted); margin-bottom: 28px; }
+.btn-primary { padding: 14px 28px; background: var(--green-main); color: #fff; border: none; border-radius: var(--radius-md); font-size: 15px; font-weight: 700; font-family: 'Nunito', sans-serif; cursor: pointer; display: inline-block; }
+
+/* ---- SOCIAL (Новини, Похвали) ---- */
+.social-header { background: var(--green-ultra); border-bottom: 1px solid var(--border); padding: 16px 18px; display: flex; align-items: center; justify-content: space-between; }
+.social-header h2 { font-size: 18px; font-weight: 800; color: var(--green-dark); }
+.btn-compose { width: 34px; height: 34px; background: var(--green-main); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+.btn-compose i { font-size: 17px; color: #fff; }
+.social-tabs { display: flex; border-bottom: 1px solid var(--border); background: var(--white); }
+.stab { flex: 1; padding: 12px 0; text-align: center; font-size: 13px; font-weight: 600; color: var(--text-muted); cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.15s; font-family: 'Nunito', sans-serif; }
+.stab.active { color: var(--green-main); border-bottom-color: var(--green-main); }
+.news-card { background: var(--white); border-radius: var(--radius-lg); margin: 0 16px 12px; padding: 16px; box-shadow: var(--shadow-sm); border: 1px solid var(--border); }
+.news-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 8px; }
+.news-title { font-size: 14px; font-weight: 700; color: var(--text-primary); flex: 1; }
+.news-body { font-size: 13px; color: var(--text-secondary); line-height: 1.55; }
+.news-footer { margin-top: 10px; display: flex; align-items: center; gap: 8px; }
+.news-author { font-size: 11px; color: var(--text-muted); }
+.praise-card { background: linear-gradient(135deg, var(--green-pale), #f0faf0); border-radius: var(--radius-lg); margin: 0 16px 12px; padding: 16px; border: 1px solid #c8e6c8; }
+.praise-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.praise-av { width: 36px; height: 36px; border-radius: 50%; background: var(--green-pale); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: var(--green-mid); flex-shrink: 0; }
+.praise-names { font-size: 13px; font-weight: 700; color: var(--text-primary); }
+.praise-sub { font-size: 11px; color: var(--text-muted); }
+.praise-body { font-size: 13px; color: var(--text-secondary); line-height: 1.5; }
+.praise-emoji { font-size: 20px; margin-bottom: 6px; }
+
+/* ---- CHAT ---- */
+.chat-header { background: var(--green-ultra); border-bottom: 1px solid var(--border); padding: 16px 18px; }
+.chat-header h2 { font-size: 18px; font-weight: 800; color: var(--green-dark); }
+.chat-header p { font-size: 12px; color: var(--text-muted); margin-top: 3px; }
+.chat-msgs { flex: 1; overflow-y: auto; padding: 16px; padding-bottom: 140px; display: flex; flex-direction: column; gap: 12px; }
+.chat-msg { display: flex; gap: 9px; align-items: flex-end; }
+.chat-msg.mine { flex-direction: row-reverse; }
+.chat-av { width: 30px; height: 30px; border-radius: 50%; background: var(--green-pale); display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: var(--green-mid); flex-shrink: 0; }
+.chat-bubble { max-width: 75%; padding: 10px 13px; border-radius: 16px; font-size: 13px; line-height: 1.5; }
+.chat-msg:not(.mine) .chat-bubble { background: var(--white); border: 1px solid var(--border); color: var(--text-primary); border-bottom-left-radius: 4px; }
+.chat-msg.mine .chat-bubble { background: var(--green-main); color: #fff; border-bottom-right-radius: 4px; }
+.chat-name { font-size: 10px; color: var(--text-muted); margin-bottom: 3px; }
+.chat-time { font-size: 10px; color: var(--text-muted); margin-top: 2px; text-align: right; }
+.chat-msg.mine .chat-time { color: rgba(255,255,255,0.7); }
+.chat-input-wrap { position: fixed; bottom: 65px; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; background: var(--white); border-top: 1px solid var(--border); padding: 10px 14px; display: flex; gap: 10px; align-items: flex-end; z-index: 90; }
+.chat-input { flex: 1; padding: 10px 14px; border: 1.5px solid var(--border); border-radius: 20px; font-size: 14px; font-family: 'Nunito Sans', sans-serif; outline: none; resize: none; max-height: 80px; }
+.chat-input:focus { border-color: var(--green-main); }
+.chat-send { width: 38px; height: 38px; background: var(--green-main); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; border: none; }
+.chat-send i { font-size: 16px; color: #fff; }
+
+/* ---- SCHEDULE ---- */
+.schedule-header { background: var(--green-ultra); border-bottom: 1px solid var(--border); padding: 16px 18px; }
+.schedule-header h2 { font-size: 18px; font-weight: 800; color: var(--green-dark); }
+.week-nav { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; background: var(--white); border-bottom: 1px solid var(--border); }
+.week-label { font-size: 14px; font-weight: 700; color: var(--text-primary); }
+.week-btn { width: 32px; height: 32px; border-radius: 50%; background: var(--bg); display: flex; align-items: center; justify-content: center; cursor: pointer; border: 1px solid var(--border); }
+.week-btn i { font-size: 16px; color: var(--text-secondary); }
+.day-row { background: var(--white); border-bottom: 1px solid var(--border); padding: 13px 18px; display: flex; align-items: center; gap: 14px; }
+.day-name { font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; min-width: 36px; }
+.day-date { font-size: 11px; color: var(--text-muted); min-width: 28px; }
+.day-shift { flex: 1; }
+.shift-pill { display: inline-flex; align-items: center; gap: 6px; background: var(--green-pale); color: var(--green-mid); padding: 6px 12px; border-radius: 100px; font-size: 13px; font-weight: 600; }
+.day-off { font-size: 13px; color: var(--text-muted); font-style: italic; }
+
+/* ---- QA ---- */
+.qa-card { background: var(--white); border-radius: var(--radius-lg); margin: 0 16px 12px; overflow: hidden; box-shadow: var(--shadow-sm); border: 1px solid var(--border); }
+.qa-question { padding: 15px 16px; display: flex; align-items: flex-start; gap: 11px; cursor: pointer; }
+.qa-q-icon { width: 32px; height: 32px; background: var(--blue-pale); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.qa-q-icon i { font-size: 15px; color: var(--blue); }
+.qa-q-text { font-size: 14px; font-weight: 700; color: var(--text-primary); flex: 1; line-height: 1.4; }
+.qa-answer { padding: 14px 16px 14px 59px; background: var(--bg); border-top: 1px solid var(--border); font-size: 13px; color: var(--text-secondary); line-height: 1.6; display: none; }
+.qa-answer.open { display: block; }
+
+/* ---- PROFILE ---- */
+.profile-header { background: linear-gradient(135deg, var(--green-dark), var(--green-mid)); padding: 30px 20px 24px; text-align: center; color: #fff; }
+.profile-av-big { width: 72px; height: 72px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; font-size: 24px; font-weight: 800; color: #fff; }
+.profile-name { font-size: 20px; font-weight: 800; font-family: 'Nunito', sans-serif; }
+.profile-meta { font-size: 13px; color: rgba(255,255,255,0.6); margin-top: 4px; }
+.profile-stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 0; background: var(--white); border-bottom: 1px solid var(--border); }
+.pstat { padding: 16px 0; text-align: center; border-right: 1px solid var(--border); }
+.pstat:last-child { border-right: none; }
+.pstat-val { font-family: 'Nunito', sans-serif; font-size: 20px; font-weight: 800; color: var(--green-mid); }
+.pstat-label { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+.profile-section { padding: 16px; }
+.profile-item { background: var(--white); border-radius: var(--radius-md); padding: 14px 16px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; border: 1px solid var(--border); cursor: pointer; }
+.pi-left { display: flex; align-items: center; gap: 12px; }
+.pi-icon { width: 36px; height: 36px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; }
+.pi-icon i { font-size: 17px; }
+.pi-label { font-size: 14px; font-weight: 600; color: var(--text-primary); }
+.pi-right i { font-size: 18px; color: var(--text-muted); }
+.btn-logout { width: calc(100% - 32px); margin: 0 16px 20px; padding: 14px; background: var(--red-pale); color: var(--red); border: 1.5px solid #f5c5c5; border-radius: var(--radius-md); font-size: 14px; font-weight: 700; font-family: 'Nunito', sans-serif; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
+
+/* ---- ADMIN EXTRAS ---- */
+.admin-bar { background: #fff3cd; border-bottom: 1px solid #ffd877; padding: 8px 18px; display: flex; align-items: center; gap: 8px; }
+.admin-bar i { font-size: 15px; color: #856404; }
+.admin-bar span { font-size: 12px; font-weight: 600; color: #856404; }
+
+/* ---- LOADING ---- */
+.loading { display: flex; align-items: center; justify-content: center; padding: 40px; flex-direction: column; gap: 14px; }
+.spinner { width: 36px; height: 36px; border: 3px solid var(--border); border-top-color: var(--green-main); border-radius: 50%; animation: spin 0.7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-text { font-size: 13px; color: var(--text-muted); }
+
+/* ---- EMPTY STATE ---- */
+.empty { text-align: center; padding: 50px 24px; }
+.empty i { font-size: 44px; color: var(--border); margin-bottom: 14px; display: block; }
+.empty p { font-size: 14px; color: var(--text-muted); }
+
+/* ---- MISC ---- */
+.section-pad { padding: 16px; }
+.mt-12 { margin-top: 12px; }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="screen-login" class="screen active">
+  <div class="login-logo">
+    <div class="login-logo-icon"><i class="ti ti-building-store"></i></div>
+    <h1>Павилион 24</h1>
+    <p>Обучителна платформа</p>
+  </div>
+  <div class="login-box">
+    <h2>Вход в системата</h2>
+    <div class="form-group">
+      <label class="form-label">Имейл</label>
+      <input type="email" class="form-input" id="login-email" placeholder="name@pavilion24.bg">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Парола</label>
+      <input type="password" class="form-input" id="login-pass" placeholder="••••••••">
+    </div>
+    <button class="btn-login" onclick="doLogin()">Влез в системата</button>
+    <div class="login-error" id="login-error">Грешен имейл или парола. Опитай отново.</div>
+    <div style="margin-top:16px;padding:12px;background:#f0f0ec;border-radius:10px;font-size:12px;color:#777;">
+      <strong>Demo режим:</strong><br>
+      Админ: admin@pavilion24.bg / admin123<br>
+      Служител: mariq@pavilion24.bg / mariq123
+    </div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="screen-app" class="screen">
+  <div class="topbar">
+    <div class="topbar-left">
+      <div>
+        <div class="topbar-logo">Павилион 24</div>
+        <div class="topbar-sub" id="tb-obekt">Лозенец</div>
+      </div>
+    </div>
+    <div class="topbar-avatar" id="tb-avatar" onclick="showPage('profile')">МП</div>
+  </div>
+
+  <div id="admin-bar" class="admin-bar" style="display:none;">
+    <i class="ti ti-shield-check"></i>
+    <span>Администраторски изглед — пълен достъп</span>
+  </div>
+
+  <div class="scroll-content">
+
+    <!-- HOME PAGE -->
+    <div class="page active" id="page-home">
+      <div class="home-hero">
+        <div class="home-greeting">Добре дошъл,</div>
+        <div class="home-name" id="home-name">Мария Петрова</div>
+        <div class="home-obekt" id="home-obekt"><i class="ti ti-map-pin" style="font-size:12px;"></i> Лозенец · Касиер</div>
+        <div class="home-stats">
+          <div class="home-stat">
+            <div class="hs-label">Тестове</div>
+            <div class="hs-val" id="hs-tests">3 / 5</div>
+          </div>
+          <div class="home-stat">
+            <div class="hs-label">Среден резултат</div>
+            <div class="hs-val" id="hs-score">82%</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="home-section">
+        <div class="home-section-title">Предстоящи задачи</div>
+        <div class="task-card" onclick="showPage('training')">
+          <div class="task-icon" style="background:#EAF3DE;"><i class="ti ti-clipboard-check" style="color:#3B6D11;"></i></div>
+          <div class="task-body">
+            <div class="task-title">Тест: Хигиена и безопасност</div>
+            <div class="task-meta">15 въпроса · ~10 минути</div>
+          </div>
+          <div class="task-badge"><span class="badge badge-amber">Предстои</span></div>
+        </div>
+        <div class="task-card" onclick="showPage('training')">
+          <div class="task-icon" style="background:#E6F1FB;"><i class="ti ti-video" style="color:#185FA5;"></i></div>
+          <div class="task-body">
+            <div class="task-title">Видео: Приготвяне на сандвичи</div>
+            <div class="task-meta">8 минути · Кухня</div>
+          </div>
+          <div class="task-badge"><span class="badge badge-blue">Ново</span></div>
+        </div>
+        <div class="task-card">
+          <div class="task-icon" style="background:#EAF3DE;"><i class="ti ti-check" style="color:#3B6D11;"></i></div>
+          <div class="task-body">
+            <div class="task-title">Въведение в системата</div>
+            <div class="task-meta">Завършен · 18/20 точки</div>
+          </div>
+          <div class="task-badge"><span class="badge badge-green">100%</span></div>
+        </div>
+      </div>
+
+      <div class="home-section mt-12">
+        <div class="home-section-title">Последни новини</div>
+        <div class="task-card" onclick="showPage('social')">
+          <div class="task-icon" style="background:#fff3cd;"><i class="ti ti-speakerphone" style="color:#856404;"></i></div>
+          <div class="task-body">
+            <div class="task-title">Нов стандарт за почистване</div>
+            <div class="task-meta">Преди 2 часа · Важно</div>
+          </div>
+          <div class="task-badge"><span class="badge badge-amber">!</span></div>
+        </div>
+        <div class="task-card" onclick="showPage('social')">
+          <div class="task-icon" style="background:#EAF3DE;"><i class="ti ti-star" style="color:#3B6D11;"></i></div>
+          <div class="task-body">
+            <div class="task-title">Похвала за Мария П.</div>
+            <div class="task-meta">Преди 1 ден</div>
+          </div>
+        </div>
+      </div>
+      <div style="height:16px;"></div>
+    </div>
+
+    <!-- TRAINING PAGE -->
+    <div class="page" id="page-training">
+      <div class="training-header">
+        <h2>Обучение</h2>
+        <p>Избери категория за да започнеш</p>
+      </div>
+      <div class="cat-grid" id="cat-grid">
+        <div class="cat-card" onclick="openCat('kitchen')">
+          <div class="cat-card-icon" style="background:#EAF3DE;"><i class="ti ti-chef-hat" style="color:#3B6D11;"></i></div>
+          <div class="cat-card-name">Кухня</div>
+          <div class="cat-card-meta">8 материала</div>
+          <div class="cat-progress"><div class="cat-progress-fill" style="width:60%"></div></div>
+        </div>
+        <div class="cat-card" onclick="openCat('drinks')">
+          <div class="cat-card-icon" style="background:#E6F1FB;"><i class="ti ti-coffee" style="color:#185FA5;"></i></div>
+          <div class="cat-card-name">Напитки</div>
+          <div class="cat-card-meta">6 материала</div>
+          <div class="cat-progress"><div class="cat-progress-fill" style="width:100%"></div></div>
+        </div>
+        <div class="cat-card" onclick="openCat('kasa')">
+          <div class="cat-card-icon" style="background:#FAEEDA;"><i class="ti ti-cash-register" style="color:#854F0B;"></i></div>
+          <div class="cat-card-name">Каса</div>
+          <div class="cat-card-meta">5 материала</div>
+          <div class="cat-progress"><div class="cat-progress-fill" style="width:80%"></div></div>
+        </div>
+        <div class="cat-card" onclick="openCat('zajavki')">
+          <div class="cat-card-icon" style="background:#EEEDFE;"><i class="ti ti-clipboard-list" style="color:#534AB7;"></i></div>
+          <div class="cat-card-name">Заявки</div>
+          <div class="cat-card-meta">4 материала</div>
+          <div class="cat-progress"><div class="cat-progress-fill" style="width:25%"></div></div>
+        </div>
+        <div class="cat-card" onclick="openCat('stoka')">
+          <div class="cat-card-icon" style="background:#E1F5EE;"><i class="ti ti-truck" style="color:#0F6E56;"></i></div>
+          <div class="cat-card-name">Прием стока</div>
+          <div class="cat-card-meta">5 материала</div>
+          <div class="cat-progress"><div class="cat-progress-fill" style="width:0%"></div></div>
+        </div>
+        <div class="cat-card" onclick="openCat('srokove')">
+          <div class="cat-card-icon" style="background:#FBEAF0;"><i class="ti ti-calendar-check" style="color:#993556;"></i></div>
+          <div class="cat-card-name">Срокове</div>
+          <div class="cat-card-meta">3 материала</div>
+          <div class="cat-progress"><div class="cat-progress-fill" style="width:0%"></div></div>
+        </div>
+        <div class="cat-card" onclick="openCat('dokumenti')">
+          <div class="cat-card-icon" style="background:#FFF3CD;"><i class="ti ti-file-text" style="color:#856404;"></i></div>
+          <div class="cat-card-name">Документи</div>
+          <div class="cat-card-meta">6 материала</div>
+          <div class="cat-progress"><div class="cat-progress-fill" style="width:0%"></div></div>
+        </div>
+        <div class="cat-card" onclick="openCat('institucii')">
+          <div class="cat-card-icon" style="background:#F0F4FF;"><i class="ti ti-building-bank" style="color:#3a5aad;"></i></div>
+          <div class="cat-card-name">Институции</div>
+          <div class="cat-card-meta">4 материала</div>
+          <div class="cat-progress"><div class="cat-progress-fill" style="width:0%"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CATEGORY SUBPAGE -->
+    <div class="page" id="page-cat">
+      <div class="subpage-header">
+        <div class="back-btn" onclick="showPage('training')"><i class="ti ti-arrow-left"></i></div>
+        <div class="subpage-title" id="cat-title">Кухня</div>
+      </div>
+      <div style="padding:16px 0;" id="cat-materials">
+        <div class="material-card">
+          <div class="material-thumb" style="background:#EAF3DE;">
+            <div class="play-overlay"><i class="ti ti-player-play"></i></div>
+          </div>
+          <div class="material-info">
+            <div class="material-title">Приготвяне на клубсандвич</div>
+            <div class="material-meta"><i class="ti ti-clock" style="font-size:12px;"></i> 8 мин <span>·</span> <i class="ti ti-video" style="font-size:12px;"></i> Видео</div>
+          </div>
+        </div>
+        <div class="material-card">
+          <div class="material-thumb" style="background:#f0faf0;">
+            <div class="play-overlay"><i class="ti ti-photo"></i></div>
+          </div>
+          <div class="material-info">
+            <div class="material-title">Стандарт за наредба на работното място</div>
+            <div class="material-meta"><i class="ti ti-photo" style="font-size:12px;"></i> Снимки · 5 снимки</div>
+          </div>
+        </div>
+        <div class="material-card">
+          <div class="material-thumb" style="background:#EAF3DE;">
+            <div class="play-overlay"><i class="ti ti-player-play"></i></div>
+          </div>
+          <div class="material-info">
+            <div class="material-title">Хигиена при работа с храна</div>
+            <div class="material-meta"><i class="ti ti-clock" style="font-size:12px;"></i> 5 мин <span>·</span> <i class="ti ti-video" style="font-size:12px;"></i> Видео</div>
+          </div>
+        </div>
+      </div>
+      <div style="padding:0 16px 16px;">
+        <div class="stitle" style="font-size:13px;font-weight:700;color:#555;margin-bottom:12px;font-family:'Nunito',sans-serif;">Тест за категорията</div>
+        <div class="task-card" onclick="startQuiz()">
+          <div class="task-icon" style="background:#EAF3DE;"><i class="ti ti-clipboard-check" style="color:#3B6D11;"></i></div>
+          <div class="task-body">
+            <div class="task-title">Тест: Кухня и приготвяне</div>
+            <div class="task-meta">10 въпроса · Мин. 70%</div>
+          </div>
+          <div class="task-badge"><span class="badge badge-amber">Предстои</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- QUIZ PAGE -->
+    <div class="page" id="page-quiz">
+      <div class="subpage-header">
+        <div class="back-btn" onclick="showPage('cat')"><i class="ti ti-arrow-left"></i></div>
+        <div class="subpage-title">Тест: Кухня</div>
+      </div>
+      <div class="quiz-wrap">
+        <div class="quiz-progress" id="quiz-progress"></div>
+        <div class="quiz-card">
+          <div class="quiz-num" id="quiz-num">ВЪПРОС 1 ОТ 5</div>
+          <div class="quiz-question" id="quiz-question">Колко часа може да стои приготвена храна при стайна температура без да се развали?</div>
+          <div id="quiz-options">
+            <div class="quiz-opt" onclick="selectOpt(this, false)"><div class="qo-radio"><div class="qo-dot"></div></div><div class="qo-text">До 6 часа</div></div>
+            <div class="quiz-opt" onclick="selectOpt(this, true)"><div class="qo-radio"><div class="qo-dot"></div></div><div class="qo-text">До 2 часа</div></div>
+            <div class="quiz-opt" onclick="selectOpt(this, false)"><div class="qo-radio"><div class="qo-dot"></div></div><div class="qo-text">До 4 часа</div></div>
+            <div class="quiz-opt" onclick="selectOpt(this, false)"><div class="qo-radio"><div class="qo-dot"></div></div><div class="qo-text">До 8 часа</div></div>
+          </div>
+          <div class="quiz-nav">
+            <span style="font-size:12px;color:#999;" id="quiz-progress-text">0 от 5 отговорени</span>
+            <button class="btn-next" id="btn-next" onclick="nextQuestion()" disabled>Следващ →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- QUIZ RESULT -->
+    <div class="page" id="page-result">
+      <div class="result-box">
+        <div class="result-circle pass" id="result-circle">
+          <div class="result-pct" id="result-pct">80%</div>
+        </div>
+        <div class="result-title" id="result-title">Положен! 🎉</div>
+        <div class="result-sub" id="result-sub">Браво! Преминал си успешно теста за Кухня.</div>
+        <button class="btn-primary" onclick="showPage('training')">Обратно към обученията</button>
+      </div>
+    </div>
+
+    <!-- SOCIAL PAGE -->
+    <div class="page" id="page-social">
+      <div class="social-header">
+        <h2>Общност</h2>
+        <div class="btn-compose"><i class="ti ti-plus"></i></div>
+      </div>
+      <div class="social-tabs">
+        <div class="stab active" onclick="switchTab(this,'tab-news')">Новини</div>
+        <div class="stab" onclick="switchTab(this,'tab-praise')">Похвали</div>
+        <div class="stab" onclick="switchTab(this,'tab-qa')">В&О</div>
+      </div>
+      <div style="padding-top:14px;">
+        <div id="tab-news">
+          <div class="news-card">
+            <div class="news-header">
+              <div class="news-title">⚠️ Нов стандарт за почистване на кухнята</div>
+              <span class="badge badge-amber" style="margin-left:10px;flex-shrink:0;">Важно</span>
+            </div>
+            <div class="news-body">От тази седмица почистването на работните повърхности се извършва на всеки 2 часа вместо на 4. Моля всички да се запознаят с новата процедура.</div>
+            <div class="news-footer"><span class="news-author"><i class="ti ti-user" style="font-size:12px;"></i> Администратор · Преди 2 часа</span></div>
+          </div>
+          <div class="news-card">
+            <div class="news-header">
+              <div class="news-title">📋 График за следващата седмица</div>
+            </div>
+            <div class="news-body">Графикът за следващата седмица е качен в раздел "График". Моля проверете смените си и потвърдете.</div>
+            <div class="news-footer"><span class="news-author"><i class="ti ti-user" style="font-size:12px;"></i> Администратор · Преди 1 ден</span></div>
+          </div>
+          <div class="news-card">
+            <div class="news-header">
+              <div class="news-title">🎓 Нови обучителни видеа добавени</div>
+            </div>
+            <div class="news-body">Добавихме 3 нови видеа в раздел Напитки — включително приготвяне на студена кафе напитка и сезонни специалитети.</div>
+            <div class="news-footer"><span class="news-author"><i class="ti ti-user" style="font-size:12px;"></i> Администратор · Преди 3 дни</span></div>
+          </div>
+        </div>
+        <div id="tab-praise" style="display:none;">
+          <div class="praise-card">
+            <div class="praise-emoji">⭐</div>
+            <div class="praise-header">
+              <div class="praise-av">МП</div>
+              <div><div class="praise-names">Мария Петрова</div><div class="praise-sub">Лозенец · Касиер</div></div>
+            </div>
+            <div class="praise-body">Мария свърши страхотна работа при проверката от БАБХ! Спокойна, уверена и отговори на всички въпроси правилно. Гордост за екипа! 💪</div>
+            <div style="margin-top:8px;font-size:11px;color:#aaa;">От: Администратор · Преди 1 ден</div>
+          </div>
+          <div class="praise-card">
+            <div class="praise-emoji">🌟</div>
+            <div class="praise-header">
+              <div class="praise-av">ГС</div>
+              <div><div class="praise-names">Георги Стоянов</div><div class="praise-sub">Младост 1 · Кухня</div></div>
+            </div>
+            <div class="praise-body">Георги помогна на новите колеги с обучението по кухня и показа страхотно отношение. Благодарим! 🙏</div>
+            <div style="margin-top:8px;font-size:11px;color:#aaa;">От: Администратор · Преди 3 дни</div>
+          </div>
+        </div>
+        <div id="tab-qa" style="display:none;">
+          <div style="padding:0 16px 12px;">
+            <div class="qa-card">
+              <div class="qa-question" onclick="toggleQA(this)">
+                <div class="qa-q-icon"><i class="ti ti-help"></i></div>
+                <div class="qa-q-text">Какво правим ако касата блокира в края на смяна?</div>
+                <i class="ti ti-chevron-down" style="font-size:16px;color:#aaa;flex-shrink:0;"></i>
+              </div>
+              <div class="qa-answer open">Ако касата блокира, натиснете бутона "Рестарт" отдолу на устройството. Изчакайте 30 секунди и опитайте отново. Ако проблемът продължава, обадете се на управителя на обекта на дежурния телефон.</div>
+            </div>
+            <div class="qa-card">
+              <div class="qa-question" onclick="toggleQA(this)">
+                <div class="qa-q-icon"><i class="ti ti-help"></i></div>
+                <div class="qa-q-text">Как се прави заявка за спешна доставка?</div>
+                <i class="ti ti-chevron-down" style="font-size:16px;color:#aaa;flex-shrink:0;"></i>
+              </div>
+              <div class="qa-answer">Спешна заявка се прави директно от раздел "Заявки" в системата, като се маркира "Спешно". Уведомете и управителя по телефон за да потвърди заявката в рамките на 1 час.</div>
+            </div>
+            <div class="qa-card">
+              <div class="qa-question" onclick="toggleQA(this)">
+                <div class="qa-q-icon"><i class="ti ti-help"></i></div>
+                <div class="qa-q-text">Как да постъпим при проверка от БАБХ?</div>
+                <i class="ti ti-chevron-down" style="font-size:16px;color:#aaa;flex-shrink:0;"></i>
+              </div>
+              <div class="qa-answer">При проверка: 1) Поздравете инспектора учтиво, 2) Незабавно уведомете управителя, 3) Предоставете всички документи от папката "Проверки", 4) Отговаряйте спокойно и честно. Не подписвайте нищо без управителя!</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CHAT PAGE -->
+    <div class="page" id="page-chat" style="display:none;">
+      <div class="chat-header">
+        <h2>Чат — Лозенец</h2>
+        <p>Вътрешен чат на обекта</p>
+      </div>
+      <div class="chat-msgs" id="chat-msgs">
+        <div class="chat-msg">
+          <div class="chat-av">АД</div>
+          <div><div class="chat-name">Администратор</div>
+          <div class="chat-bubble">Добро утро на всички! Не забравяйте — днес имаме проверка от БАБХ около 14:00 ч.</div>
+          <div class="chat-time">09:15</div></div>
+        </div>
+        <div class="chat-msg mine">
+          <div class="chat-av" style="background:#E6F1FB;color:#185FA5;">МП</div>
+          <div><div class="chat-bubble">Разбрано! Ще се погрижа всичко да е наред.</div>
+          <div class="chat-time">09:18</div></div>
+        </div>
+        <div class="chat-msg">
+          <div class="chat-av" style="background:#FAEEDA;color:#854F0B;">ГС</div>
+          <div><div class="chat-name">Георги С.</div>
+          <div class="chat-bubble">Хладилниците проверени — всичко е наред с температурите 👍</div>
+          <div class="chat-time">09:22</div></div>
+        </div>
+        <div class="chat-msg">
+          <div class="chat-av">АД</div>
+          <div><div class="chat-name">Администратор</div>
+          <div class="chat-bubble">Браво! Документите за проверка са в папката на рафта до касата.</div>
+          <div class="chat-time">09:25</div></div>
+        </div>
+      </div>
+      <div class="chat-input-wrap">
+        <textarea class="chat-input" id="chat-input" placeholder="Напиши съобщение..." rows="1" onkeydown="chatEnter(event)"></textarea>
+        <button class="chat-send" onclick="sendMsg()"><i class="ti ti-send"></i></button>
+      </div>
+    </div>
+
+    <!-- SCHEDULE PAGE -->
+    <div class="page" id="page-schedule">
+      <div class="schedule-header">
+        <h2>Работен график</h2>
+      </div>
+      <div class="week-nav">
+        <div class="week-btn"><i class="ti ti-chevron-left"></i></div>
+        <div class="week-label">19 – 25 Май 2025</div>
+        <div class="week-btn"><i class="ti ti-chevron-right"></i></div>
+      </div>
+      <div>
+        <div class="day-row">
+          <div class="day-name">Пон</div>
+          <div class="day-date">19</div>
+          <div class="day-shift"><span class="shift-pill"><i class="ti ti-clock" style="font-size:13px;"></i> 08:00 – 16:00</span></div>
+        </div>
+        <div class="day-row">
+          <div class="day-name">Вт</div>
+          <div class="day-date">20</div>
+          <div class="day-shift"><span class="shift-pill"><i class="ti ti-clock" style="font-size:13px;"></i> 08:00 – 16:00</span></div>
+        </div>
+        <div class="day-row">
+          <div class="day-name">Ср</div>
+          <div class="day-date">21</div>
+          <div class="day-shift"><div class="day-off">Почивен ден</div></div>
+        </div>
+        <div class="day-row">
+          <div class="day-name">Чет</div>
+          <div class="day-date">22</div>
+          <div class="day-shift"><span class="shift-pill"><i class="ti ti-clock" style="font-size:13px;"></i> 12:00 – 20:00</span></div>
+        </div>
+        <div class="day-row">
+          <div class="day-name">Пет</div>
+          <div class="day-date">23</div>
+          <div class="day-shift"><span class="shift-pill"><i class="ti ti-clock" style="font-size:13px;"></i> 12:00 – 20:00</span></div>
+        </div>
+        <div class="day-row">
+          <div class="day-name">Съб</div>
+          <div class="day-date">24</div>
+          <div class="day-shift"><div class="day-off">Почивен ден</div></div>
+        </div>
+        <div class="day-row">
+          <div class="day-name">Нед</div>
+          <div class="day-date">25</div>
+          <div class="day-shift"><span class="shift-pill"><i class="ti ti-clock" style="font-size:13px;"></i> 10:00 – 18:00</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROFILE PAGE -->
+    <div class="page" id="page-profile">
+      <div class="profile-header">
+        <div class="profile-av-big" id="prof-av">МП</div>
+        <div class="profile-name" id="prof-name">Мария Петрова</div>
+        <div class="profile-meta" id="prof-meta">Касиер · Лозенец</div>
+      </div>
+      <div class="profile-stats">
+        <div class="pstat"><div class="pstat-val">3</div><div class="pstat-label">Тестове</div></div>
+        <div class="pstat"><div class="pstat-val">82%</div><div class="pstat-label">Среден %</div></div>
+        <div class="pstat"><div class="pstat-val">7</div><div class="pstat-label">Видеа</div></div>
+      </div>
+      <div class="profile-section">
+        <div class="profile-item" onclick="showPage('schedule')">
+          <div class="pi-left">
+            <div class="pi-icon" style="background:#EAF3DE;"><i class="ti ti-calendar" style="color:#3B6D11;"></i></div>
+            <div class="pi-label">Работен график</div>
+          </div>
+          <div class="pi-right"><i class="ti ti-chevron-right"></i></div>
+        </div>
+        <div class="profile-item" onclick="showPage('training')">
+          <div class="pi-left">
+            <div class="pi-icon" style="background:#E6F1FB;"><i class="ti ti-chart-bar" style="color:#185FA5;"></i></div>
+            <div class="pi-label">Моите резултати</div>
+          </div>
+          <div class="pi-right"><i class="ti ti-chevron-right"></i></div>
+        </div>
+        <div class="profile-item">
+          <div class="pi-left">
+            <div class="pi-icon" style="background:#FAEEDA;"><i class="ti ti-bell" style="color:#854F0B;"></i></div>
+            <div class="pi-label">Известия</div>
+          </div>
+          <div class="pi-right"><i class="ti ti-chevron-right"></i></div>
+        </div>
+      </div>
+      <button class="btn-logout" onclick="doLogout()"><i class="ti ti-logout"></i> Изход от системата</button>
+    </div>
+
+  </div><!-- end scroll-content -->
+
+  <!-- BOTTOM NAV -->
+  <div class="bottom-nav">
+    <div class="bn-item active" onclick="showPage('home')" id="bn-home">
+      <i class="ti ti-home"></i><span>Начало</span>
+    </div>
+    <div class="bn-item" onclick="showPage('training')" id="bn-training">
+      <i class="ti ti-book"></i><span>Обучение</span>
+    </div>
+    <div class="bn-item" onclick="showPage('social')" id="bn-social">
+      <i class="ti ti-news"></i><span>Общност</span>
+      <div class="bn-badge">2</div>
+    </div>
+    <div class="bn-item" onclick="showPage('chat')" id="bn-chat">
+      <i class="ti ti-message-circle"></i><span>Чат</span>
+      <div class="bn-badge">3</div>
+    </div>
+    <div class="bn-item" onclick="showPage('schedule')" id="bn-schedule">
+      <i class="ti ti-calendar"></i><span>График</span>
+    </div>
+  </div>
+</div><!-- end screen-app -->
+
+<script>
+// ---- SUPABASE ----
+const SUPA_URL = 'https://yuuermzoxkylnpxrswsc.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl1dWVybXpveGt5bG5weHJzd3NjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk1NTYwNjgsImV4cCI6MjA5NTEzMjA2OH0.pUZWGHBi-jjWcKakO6MwTKgsYOaBCDElUx8swg6lG5o';
+const { createClient } = supabase;
+const db = createClient(SUPA_URL, SUPA_KEY);
+
+// ---- DEMO USERS ----
+const DEMO_USERS = {
+  'admin@pavilion24.bg': { parola: 'admin123', ime: 'Администратор', rol: 'admin', poziciq: 'Администратор', obekt: 'Централен офис', initiali: 'АД' },
+  'mariq@pavilion24.bg': { parola: 'mariq123', ime: 'Мария Петрова', rol: 'sluzhitel', poziciq: 'Касиер', obekt: 'Лозенец', initiali: 'МП' }
+};
+
+let currentUser = null;
+
+// ---- LOGIN ----
+async function doLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const pass = document.getElementById('login-pass').value;
+  const errEl = document.getElementById('login-error');
+  errEl.style.display = 'none';
+
+  const user = DEMO_USERS[email];
+  if (user && user.parola === pass) {
+    currentUser = { ...user, email };
+    loadApp();
+    return;
+  }
+  errEl.style.display = 'block';
+}
+
+document.getElementById('login-pass').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+
+function loadApp() {
+  document.getElementById('screen-login').classList.remove('active');
+  document.getElementById('screen-app').classList.add('active');
+  document.getElementById('home-name').textContent = currentUser.ime;
+  document.getElementById('home-obekt').innerHTML = `<i class="ti ti-map-pin" style="font-size:12px;"></i> ${currentUser.obekt} · ${currentUser.poziciq}`;
+  document.getElementById('tb-obekt').textContent = currentUser.obekt;
+  document.getElementById('tb-avatar').textContent = currentUser.initiali;
+  document.getElementById('prof-av').textContent = currentUser.initiali;
+  document.getElementById('prof-name').textContent = currentUser.ime;
+  document.getElementById('prof-meta').textContent = `${currentUser.poziciq} · ${currentUser.obekt}`;
+  if (currentUser.rol === 'admin') {
+    document.getElementById('admin-bar').style.display = 'flex';
+  }
+}
+
+function doLogout() {
+  currentUser = null;
+  document.getElementById('screen-app').classList.remove('active');
+  document.getElementById('screen-login').classList.add('active');
+  document.getElementById('login-email').value = '';
+  document.getElementById('login-pass').value = '';
+}
+
+// ---- NAVIGATION ----
+const BN_MAP = { home:'bn-home', training:'bn-training', social:'bn-social', chat:'bn-chat', schedule:'bn-schedule' };
+
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => { p.style.display = 'none'; p.classList.remove('active'); });
+  const el = document.getElementById('page-' + id);
+  if (el) { el.style.display = 'block'; el.classList.add('active'); }
+  document.querySelectorAll('.bn-item').forEach(b => b.classList.remove('active'));
+  if (BN_MAP[id]) document.getElementById(BN_MAP[id]).classList.add('active');
+  document.querySelector('.scroll-content').scrollTop = 0;
+
+  // Show/hide chat input & bottom nav overlap
+  const chatInput = document.querySelector('.chat-input-wrap');
+  chatInput.style.display = id === 'chat' ? 'flex' : 'none';
+}
+
+// init
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
+  document.getElementById('page-home').style.display = 'block';
+  document.getElementById('page-home').classList.add('active');
+  document.querySelector('.chat-input-wrap').style.display = 'none';
+});
+
+// ---- TRAINING ----
+const CAT_NAMES = {
+  kitchen:'Кухня', drinks:'Напитки', kasa:'Каса и системи',
+  zajavki:'Заявки', stoka:'Прием на стока', srokove:'Срокове на годност',
+  dokumenti:'Документи', institucii:'Комуникация с институции'
+};
+function openCat(id) {
+  document.getElementById('cat-title').textContent = CAT_NAMES[id] || id;
+  showPage('cat');
+}
+
+// ---- QUIZ ----
+const QUESTIONS = [
+  { q: 'Колко часа може да стои приготвена храна при стайна температура без да се развали?', opts: ['До 6 часа','До 2 часа','До 4 часа','До 8 часа'], correct: 1 },
+  { q: 'При каква температура трябва да се съхранява месото в хладилника?', opts: ['0–4°C','5–8°C','10–15°C','-5°C'], correct: 0 },
+  { q: 'Кога задължително се сменят ръкавиците при работа с храна?', opts: ['Веднъж на ден','При всяка смяна на дейност','На всеки 2 часа','Само при видимо замърсяване'], correct: 1 },
+  { q: 'Какъв документ трябва да се представи при проверка от БАБХ?', opts: ['Касова бележка','Книга за проверки и санитарен журнал','Трудов договор','Само лична карта'], correct: 1 },
+  { q: 'Колко пъти се почиства работната повърхност по новия стандарт?', opts: ['Веднъж на смяна','На всеки 4 часа','На всеки 2 часа','На всеки час'], correct: 2 },
+];
+
+let qIndex = 0, score = 0, answered = false;
+
+function startQuiz() {
+  qIndex = 0; score = 0; answered = false;
+  renderQuestion();
+  showPage('quiz');
+}
+
+function renderQuestion() {
+  const q = QUESTIONS[qIndex];
+  document.getElementById('quiz-num').textContent = `ВЪПРОС ${qIndex+1} ОТ ${QUESTIONS.length}`;
+  document.getElementById('quiz-question').textContent = q.q;
+  document.getElementById('quiz-progress-text').textContent = `${qIndex} от ${QUESTIONS.length} отговорени`;
+  const optsEl = document.getElementById('quiz-options');
+  optsEl.innerHTML = q.opts.map((o,i) => `
+    <div class="quiz-opt" onclick="selectOpt(this,${i === q.correct})">
+      <div class="qo-radio"><div class="qo-dot"></div></div>
+      <div class="qo-text">${o}</div>
+    </div>`).join('');
+  const prog = document.getElementById('quiz-progress');
+  prog.innerHTML = QUESTIONS.map((_,i) => `<div class="qp-dot ${i < qIndex ? 'done' : i === qIndex ? 'current' : ''}"></div>`).join('');
+  const btn = document.getElementById('btn-next');
+  btn.disabled = true;
+  btn.textContent = qIndex < QUESTIONS.length - 1 ? 'Следващ →' : 'Завърши ✓';
+  answered = false;
+}
+
+function selectOpt(el, correct) {
+  if (answered) return;
+  answered = true;
+  document.querySelectorAll('.quiz-opt').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  if (correct) { score++; el.classList.add('correct'); }
+  else { el.classList.add('wrong'); }
+  document.getElementById('btn-next').disabled = false;
+}
+
+function nextQuestion() {
+  if (!answered) return;
+  if (qIndex < QUESTIONS.length - 1) { qIndex++; renderQuestion(); }
+  else { showResult(); }
+}
+
+function showResult() {
+  const pct = Math.round((score / QUESTIONS.length) * 100);
+  const pass = pct >= 70;
+  const circ = document.getElementById('result-circle');
+  circ.className = 'result-circle ' + (pass ? 'pass' : 'fail');
+  document.getElementById('result-pct').textContent = pct + '%';
+  document.getElementById('result-title').textContent = pass ? 'Положен! 🎉' : 'Не е положен 😕';
+  document.getElementById('result-sub').textContent = pass
+    ? `Браво! Отговорил си правилно на ${score} от ${QUESTIONS.length} въпроса.`
+    : `Отговорил си правилно на ${score} от ${QUESTIONS.length} въпроса. Нужни са минимум 70%. Опитай отново!`;
+  showPage('result');
+}
+
+// ---- SOCIAL TABS ----
+function switchTab(el, tabId) {
+  document.querySelectorAll('.stab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('tab-news').style.display = 'none';
+  document.getElementById('tab-praise').style.display = 'none';
+  document.getElementById('tab-qa').style.display = 'none';
+  document.getElementById(tabId).style.display = 'block';
+}
+
+// ---- QA ----
+function toggleQA(el) {
+  const ans = el.nextElementSibling;
+  ans.classList.toggle('open');
+}
+
+// ---- CHAT ----
+function sendMsg() {
+  const input = document.getElementById('chat-input');
+  const text = input.value.trim();
+  if (!text) return;
+  const msgs = document.getElementById('chat-msgs');
+  const now = new Date();
+  const time = now.getHours() + ':' + String(now.getMinutes()).padStart(2,'0');
+  const div = document.createElement('div');
+  div.className = 'chat-msg mine';
+  div.innerHTML = `<div class="chat-av" style="background:#E6F1FB;color:#185FA5;">${currentUser?.initiali || 'МП'}</div><div><div class="chat-bubble">${text}</div><div class="chat-time">${time}</div></div>`;
+  msgs.appendChild(div);
+  input.value = '';
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function chatEnter(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); }
+}
+</script>
+</body>
+</html>
