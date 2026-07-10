@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Симулатор — Заявки</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: Arial, sans-serif; background: #fff; font-size: 13px; color: #000; }
+
+/* TABS */
+.sheet-tabs { display: flex; background: #f1f3f4; border-top: 1px solid #e0e0e0; overflow-x: auto; padding: 0 8px; position: fixed; bottom: 0; left: 0; right: 0; z-index: 100; }
+.stab { padding: 8px 16px; font-size: 12px; cursor: pointer; border-radius: 6px 6px 0 0; border: 1px solid transparent; border-bottom: none; white-space: nowrap; color: #444; margin-top: 4px; display: flex; align-items: center; gap: 5px; }
+.stab.active { background: #fff; border-color: #c0c0c0; color: #1a73e8; font-weight: 500; }
+.stab .lock { font-size: 10px; }
+
+/* TOOLBAR */
+.toolbar { background: #f8f9fa; border-bottom: 1px solid #e0e0e0; padding: 6px 12px; display: flex; align-items: center; gap: 8px; position: sticky; top: 0; z-index: 50; }
+.toolbar-title { font-size: 16px; font-weight: 500; color: #202124; flex: 1; }
+.toolbar-sub { font-size: 12px; color: #5f6368; }
+
+/* FORMULA BAR */
+.formula-bar { background: #fff; border-bottom: 1px solid #e0e0e0; padding: 4px 12px; display: flex; align-items: center; gap: 10px; font-size: 12px; color: #444; }
+.cell-ref { min-width: 60px; border-right: 1px solid #e0e0e0; padding-right: 10px; font-weight: 500; }
+
+/* GRID */
+.grid-wrap { overflow-x: auto; overflow-y: auto; height: calc(100vh - 130px); padding-bottom: 50px; }
+table { border-collapse: collapse; width: 100%; }
+th { background: #f8f9fa; border: 1px solid #e0e0e0; padding: 4px 8px; text-align: center; font-size: 11px; color: #444; font-weight: 400; min-width: 30px; position: sticky; top: 0; z-index: 10; }
+th.col-header { min-width: 100px; }
+td { border: 1px solid #e0e0e0; padding: 3px 6px; min-width: 30px; white-space: nowrap; vertical-align: middle; }
+td.row-num { background: #f8f9fa; text-align: center; font-size: 11px; color: #444; min-width: 30px; }
+td.label { background: #fff; }
+td.yellow { background: #fff9c4; }
+td.yellow input { background: #fff9c4; }
+td.computed { background: #fff; font-weight: 600; text-align: center; }
+td.computed.neg { color: #d32f2f; }
+td.computed.pos { color: #1a73e8; }
+td.header-cell { background: #fff; font-weight: 700; color: #d32f2f; text-align: center; font-size: 13px; }
+td.col-header-row { background: #f8f9fa; font-weight: 700; text-align: center; font-size: 12px; }
+td input { border: none; outline: none; width: 100%; font-size: 13px; font-family: Arial, sans-serif; text-align: center; padding: 0; }
+td.selected { outline: 2px solid #1a73e8; outline-offset: -1px; }
+
+/* SEND BUTTON */
+.send-btn-wrap { position: relative; }
+.send-btn { background: #d32f2f; color: white; border: none; padding: 8px 20px; font-size: 13px; font-weight: 700; cursor: pointer; border-radius: 4px; display: flex; align-items: center; gap: 6px; }
+.send-btn:hover { background: #b71c1c; }
+.arrow-img { font-size: 20px; }
+
+/* MODAL */
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 999; align-items: center; justify-content: center; }
+.modal-overlay.show { display: flex; }
+.modal { background: #fff; border-radius: 8px; padding: 28px 32px; min-width: 300px; max-width: 400px; box-shadow: 0 4px 24px rgba(0,0,0,0.2); }
+.modal h3 { font-size: 18px; font-weight: 500; margin-bottom: 16px; color: #202124; }
+.modal p { font-size: 14px; color: #444; margin-bottom: 6px; }
+.modal-ok { margin-top: 20px; text-align: right; }
+.modal-ok button { background: none; border: none; color: #1a73e8; font-size: 14px; font-weight: 500; cursor: pointer; padding: 6px 12px; }
+.modal-ok button:hover { background: #e8f0fe; border-radius: 4px; }
+
+/* HINT */
+.hint-box { background: #000; color: #fff; border-radius: 6px; padding: 10px 14px; font-size: 12px; line-height: 1.5; max-width: 200px; text-align: center; }
+
+/* SECTION DIVIDER */
+.section-label { background: #d32f2f; color: #fff; font-weight: 700; text-align: center; font-size: 13px; padding: 5px; }
+
+/* ZAJAVKI 2 */
+.z2-table { width: 100%; border-collapse: collapse; }
+.z2-table td, .z2-table th { border: 1px solid #e0e0e0; padding: 4px 8px; }
+.z2-table .red-note { color: #d32f2f; font-size: 11px; font-style: italic; }
+.z2-table td input { border: none; outline: none; width: 70px; font-size: 13px; text-align: center; background: #fff9c4; }
+.z2-table td.inp-cell { background: #fff9c4; text-align: center; }
+.z2-table th { background: #f8f9fa; font-weight: 700; }
+
+.info-banner { background: #e8f5e9; border: 1px solid #a5d6a7; border-radius: 6px; padding: 10px 14px; margin: 10px 12px; font-size: 12px; color: #2e7d32; }
+.pg { display: none; } .pg.active { display: block; }
+</style>
+</head>
+<body>
+
+<!-- TOOLBAR -->
+<div class="toolbar">
+  <div>
+    <div class="toolbar-title">🟩 Шипченски проход — Симулатор заявки</div>
+    <div class="toolbar-sub">Попълвате само в жълтите клетки!</div>
+  </div>
+</div>
+
+<!-- FORMULA BAR -->
+<div class="formula-bar" id="fbar">
+  <div class="cell-ref" id="cell-ref">A1</div>
+  <div id="cell-val"></div>
+</div>
+
+<!-- PAGES -->
+<div class="pg active" id="pg-zajavki">
+  <div class="info-banner">
+    💡 <strong>Симулатор — тренировъчен режим.</strong> Попълни жълтите клетки с наличните количества. Системата автоматично изчислява "За доставка". После натисни <strong>Изпрати</strong>.
+  </div>
+  <div class="grid-wrap">
+    <table id="grid-zajavki"></table>
+  </div>
+</div>
+
+<div class="pg" id="pg-zajavki2">
+  <div class="info-banner">
+    💡 Попълни количествата за артикулите от Заявки-2. После се върни на <strong>Заявки</strong> и натисни Изпрати.
+  </div>
+  <div class="grid-wrap" style="padding:12px;">
+    <table class="z2-table">
+      <tr><th style="min-width:220px;">Артикул</th><th style="min-width:120px;">Количество</th></tr>
+      <tr><td>Домати</td><td class="inp-cell"><input type="number" placeholder="0" id="z2_domati"></td></tr>
+      <tr><td>Айсберг</td><td class="inp-cell"><input type="number" placeholder="0" id="z2_aisber"></td></tr>
+      <tr><td>Червен лук</td><td class="inp-cell"><input type="number" placeholder="0" id="z2_luk"></td></tr>
+      <tr><td>Смес за риба тон 1.080</td><td class="inp-cell"><input type="number" placeholder="0" id="z2_riba1"></td></tr>
+      <tr><td>Смес за риба тон 0.540</td><td class="inp-cell"><input type="number" placeholder="0" id="z2_riba2"></td></tr>
+      <tr><td colspan="2" class="red-note" style="padding:4px 8px;">ако имате нужда от смес, напишете 1 срещу съответния необходим грамаж</td></tr>
+      <tr><td>Чабати</td><td class="inp-cell"><input type="number" placeholder="0" id="z2_chabati"></td></tr>
+      <tr><td>Сушен домат</td><td class="inp-cell"><input type="number" placeholder="0" id="z2_sushen"></td></tr>
+      <tr><td>Кренвирш класик</td><td class="inp-cell"><input type="number" placeholder="0" id="z2_kren1"></td></tr>
+      <tr><td>Баварски вурст</td><td class="inp-cell"><input type="number" placeholder="0" id="z2_bavar"></td></tr>
+      <tr><td>Кренвирш с едам</td><td class="inp-cell"><input type="number" placeholder="0" id="z2_kren2"></td></tr>
+      <tr><td>Багета за хот дог</td><td class="inp-cell"><input type="number" placeholder="0" id="z2_bageta1"></td></tr>
+      <tr><td>Бриош багета за хот дог</td><td class="inp-cell"><input type="number" placeholder="0" id="z2_bageta2"></td></tr>
+      <tr><td colspan="2" style="padding:6px 8px;font-weight:700;">Друго</td></tr>
+      <tr><td><input type="text" placeholder="Артикул..." style="border:none;outline:none;width:100%;font-size:13px;background:#fff9c4;padding:2px 4px;"></td><td class="inp-cell"><input type="number" placeholder="0"></td></tr>
+      <tr><td><input type="text" placeholder="Артикул..." style="border:none;outline:none;width:100%;font-size:13px;background:#fff9c4;padding:2px 4px;"></td><td class="inp-cell"><input type="number" placeholder="0"></td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- SHEET TABS -->
+<div class="sheet-tabs">
+  <div class="stab active" onclick="switchTab('zajavki',this)"><span class="lock">🔒</span> Заявки</div>
+  <div class="stab" onclick="switchTab('zajavki2',this)"><span class="lock">🔒</span> Заявки-2</div>
+</div>
+
+<!-- SUCCESS MODAL -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <h3>Заявката е изпратена!</h3>
+    <p><strong>Обект:</strong> Шипченски проход</p>
+    <p id="modal-razdel"><strong>Раздел:</strong> Нед-Чет</p>
+    <p id="modal-date"><strong>Дата:</strong> </p>
+    <div class="modal-ok"><button onclick="closeModal()">OK</button></div>
+  </div>
+</div>
+
+<script>
+// ===== ДАННИ =====
+const STOKI_NEDCHET = [
+  'сандвич Съомга','сандвич Кото','сандвич Капрезе','сандвич Мортадела',
+  'сандвич Прошуто','сандвич Пилешко филе','Сандвич Луканка',
+  'салата Цезар','салата Риба Тон','салата Гръцка','салата Тера',
+  'салата Прошуто','салата Пиле и паста','Таратор',
+  'Йогурт с мед, чия и червени боровинки','Йогурт с фъстъчено масло',
+  'Кисело мляко с лимецова гранола и протеин','Домашна торта със закв. сметана'
+];
+const DO_NEDCHET = [7,6,4,6,6,10,6,11,4,3,4,3,5,8,10,10,10,8];
+const DO_PETSAB = [3,5,3,4,4,8,6,5,2,3,2,3,3,5,7,5,5,6];
+
+let nalichni_nc = new Array(STOKI_NEDCHET.length).fill('');
+let nalichni_ps = new Array(STOKI_NEDCHET.length).fill('');
+
+function buildGrid() {
+  const t = document.getElementById('grid-zajavki');
+  let html = '';
+
+  // Header row
+  html += '<tr>';
+  html += '<th></th>'; // row num
+  html += '<th class="col-header">A</th>';
+  html += '<th class="col-header">B</th>';
+  html += '<th class="col-header">C</th>';
+  html += '<th class="col-header">D</th>';
+  html += '<th class="col-header">E</th>';
+  html += '<th class="col-header">F</th>';
+  html += '<th class="col-header">G</th>';
+  html += '<th class="col-header">H</th>';
+  html += '<th class="col-header">I</th>';
+  html += '</tr>';
+
+  // Row 1 — titles
+  html += '<tr>';
+  html += '<td class="row-num">1</td>';
+  html += '<td class="header-cell" colspan="4">Заявка ОТ НЕДЕЛЯ ДО ЧЕТВЪРТЪК</td>';
+  html += '<td></td>';
+  html += '<td class="header-cell" colspan="4" style="color:#d32f2f;">Заявка за ПЕТЪК И СЪБОТА</td>';
+  html += '</tr>';
+
+  // Row 2 — empty
+  html += '<tr><td class="row-num">2</td>' + '<td></td>'.repeat(9) + '</tr>';
+
+  // Row 3 — column headers
+  html += '<tr><td class="row-num">3</td>';
+  html += '<td class="col-header-row">Стока</td>';
+  html += '<td class="col-header-row">Налични</td>';
+  html += '<td class="col-header-row">За доставка</td>';
+  html += '<td class="col-header-row">До:</td>';
+  html += '<td></td>';
+  html += '<td class="col-header-row">Стока</td>';
+  html += '<td class="col-header-row">Налични</td>';
+  html += '<td class="col-header-row">За доставка</td>';
+  html += '<td class="col-header-row">До:</td>';
+  html += '</tr>';
+
+  // Data rows
+  STOKI_NEDCHET.forEach((stoka, i) => {
+    const rowNum = i + 4;
+    const isBtn1 = i === 4; // row 8 = Изпрати button area
+    const isBtn2 = i === 13;
+    const isHint = i === 6;
+
+    html += `<tr>`;
+    html += `<td class="row-num">${rowNum}</td>`;
+
+    // Left table (Нед-Чет)
+    html += `<td class="label">${stoka}</td>`;
+    html += `<td class="yellow"><input type="number" id="nc_${i}" placeholder="" min="0" oninput="updateRow(${i})" onfocus="setRef('B${rowNum}',this.value)"></td>`;
+    html += `<td class="computed" id="nc_del_${i}"></td>`;
+    html += `<td class="computed" style="color:#555;">${DO_NEDCHET[i]}</td>`;
+
+    // Middle column (button area)
+    if (i === 4) {
+      html += `<td rowspan="9" style="vertical-align:middle;text-align:center;padding:8px;">
+        <button class="send-btn" onclick="sendZajavka('Нед-Чет')">
+          ◀ Изпрати
+        </button>
+        <div class="hint-box" style="margin-top:8px;font-size:11px;">Бутоните изпращат ЗАЕДНО листовете Заявки и Заявки-2</div>
+      </td>`;
+    } else if (i === 13) {
+      html += `<td style="vertical-align:middle;text-align:center;padding:8px;">
+        <button class="send-btn" onclick="sendZajavka('Пет-Съб')">Изпрати ▶</button>
+      </td>`;
+    } else if (i !== 5 && i !== 6 && i !== 7 && i !== 8 && i !== 9 && i !== 10 && i !== 11 && i !== 12) {
+      html += `<td></td>`;
+    }
+
+    // Right table (Пет-Съб)
+    html += `<td class="label">${stoka}</td>`;
+    html += `<td class="yellow"><input type="number" id="ps_${i}" placeholder="" min="0" oninput="updateRow(${i})" onfocus="setRef('H${rowNum}',this.value)"></td>`;
+    html += `<td class="computed" id="ps_del_${i}"></td>`;
+    html += `<td class="computed" style="color:#555;">${DO_PETSAB[i]}</td>`;
+    html += `</tr>`;
+  });
+
+  t.innerHTML = html;
+  updateAll();
+}
+
+function updateRow(i) {
+  const nc = parseInt(document.getElementById('nc_' + i)?.value) || 0;
+  const ps = parseInt(document.getElementById('ps_' + i)?.value) || 0;
+  const nc_del = DO_NEDCHET[i] - nc;
+  const ps_del = DO_PETSAB[i] - ps;
+
+  const nc_el = document.getElementById('nc_del_' + i);
+  const ps_el = document.getElementById('ps_del_' + i);
+
+  if (nc_el) {
+    nc_el.textContent = document.getElementById('nc_' + i)?.value !== '' ? nc_del : '';
+    nc_el.className = 'computed ' + (nc_del < 0 ? 'neg' : nc_del > 0 ? 'pos' : '');
+  }
+  if (ps_el) {
+    ps_el.textContent = document.getElementById('ps_' + i)?.value !== '' ? ps_del : '';
+    ps_el.className = 'computed ' + (ps_del < 0 ? 'neg' : ps_del > 0 ? 'pos' : '');
+  }
+}
+
+function updateAll() {
+  STOKI_NEDCHET.forEach((_, i) => updateRow(i));
+}
+
+function setRef(ref, val) {
+  document.getElementById('cell-ref').textContent = ref;
+  document.getElementById('cell-val').textContent = val || '';
+}
+
+function sendZajavka(razdel) {
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('bg-BG') + ' ' + now.getHours() + ':' + String(now.getMinutes()).padStart(2,'0');
+  document.getElementById('modal-razdel').innerHTML = `<strong>Раздел:</strong> ${razdel}`;
+  document.getElementById('modal-date').innerHTML = `<strong>Дата:</strong> ${dateStr}`;
+  document.getElementById('modal').classList.add('show');
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.remove('show');
+}
+
+function switchTab(id, el) {
+  document.querySelectorAll('.pg').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.stab').forEach(t => t.classList.remove('active'));
+  document.getElementById('pg-' + id).classList.add('active');
+  el.classList.add('active');
+}
+
+// Build on load
+buildGrid();
+</script>
+</body>
+</html>
